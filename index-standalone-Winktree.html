@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Winktree clone | A link in bio built for you</title>
+<meta name="description" content="A responsive Winktree-style landing page built with plain HTML, CSS and vanilla JavaScript.">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMyNTRmMWEiLz48cGF0aCBkPSJNMzIgMTJ2NDBNMTQgMjJsMzYgMjBNNTAgMjIgMTQgNDIiIHN0cm9rZT0iI2QyZTgyMyIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4K" type="image/svg+xml">
+<style>
+/* ===== Design tokens: defined once, reused everywhere ===== */
+:root {
+  --lime: #d2e823; --green: #254f1a; --green-dark: #1a3812;
+  --purple: #8129d9; --purple-deep: #6b1fb5; --pink: #e9c0e9;
+  --blue: #2665d6; --navy: #0a1ea8; --burgundy: #780016; --wine: #4f0014;
+  --cream: #f3f3f1; --mist: #e8f0d8; --ink: #1a1a1a; --white: #fff; --muted: #5b5b57;
+
+  --space-1: .25rem; --space-2: .5rem; --space-3: 1rem; --space-4: 1.5rem;
+  --space-5: 2.5rem; --space-6: 4rem; --space-7: 6rem;
+
+  --fs-sm: .875rem; --fs-md: 1rem; --fs-lg: 1.2rem;
+  --fs-xl: clamp(1.35rem, 1.1rem + 1vw, 1.8rem);
+  --fs-2xl: clamp(2rem, 1.3rem + 3vw, 3.4rem);
+  --fs-3xl: clamp(2.5rem, 1.5rem + 4.5vw, 4.6rem);
+
+  --font-display: "Arial Black", "Segoe UI Black", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+
+  --radius: 24px; --radius-pill: 999px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, .16);
+  --t: 200ms ease; /* one short transition duration for the whole page */
+}
+
+/* ===== Base ===== */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
+body { margin: 0; font: var(--fs-md)/1.6 var(--font-body); color: var(--ink); background: var(--cream); }
+img, svg { max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+h1, h2, h3 { margin: 0; font-family: var(--font-display); font-weight: 900; line-height: 1.05; letter-spacing: -.02em; overflow-wrap: break-word; }
+p { margin: 0; }
+:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
+.container { width: 100%; max-width: 1200px; margin-inline: auto; padding-inline: var(--space-3); }
+.sr-only, .skip-link:not(:focus) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.skip-link { position: fixed; top: var(--space-2); left: var(--space-2); z-index: 100; background: var(--lime); padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); }
+
+/* ===== Buttons ===== */
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: .7rem 1.4rem; border: 0; border-radius: var(--radius-pill); font: 700 var(--fs-md)/1.2 var(--font-body); cursor: pointer; transition: background-color var(--t), color var(--t), transform var(--t); }
+.btn:hover { transform: scale(1.04); }
+.btn-lg { padding: 1rem 1.8rem; font-size: var(--fs-lg); }
+.btn-dark { background: var(--ink); color: var(--white); } .btn-dark:hover { background: #3a3a3a; }
+.btn-quiet { background: transparent; } .btn-quiet:hover { background: var(--cream); }
+.btn-lime { background: var(--lime); color: var(--ink); } .btn-lime:hover { background: #e4f65e; }
+.btn-pink { background: var(--pink); color: var(--ink); } .btn-pink:hover { background: #f4d6f4; }
+.btn-green { background: var(--green); color: var(--lime); } .btn-green:hover { background: var(--green-dark); }
+.btn-gray { background: #ececea; } .btn-gray:hover { background: #dcdcd8; }
+
+/* ===== Floating pill navbar (mobile first: collapses behind a hamburger) ===== */
+.site-header { position: sticky; top: 0; z-index: 50; height: 0; }
+.site-header .container { padding-top: var(--space-3); }
+.nav-pill { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: .45rem .6rem .45rem 1.1rem; background: var(--white); border-radius: 28px; box-shadow: 0 6px 24px rgba(0, 0, 0, .14); }
+.logo { display: inline-flex; align-items: flex-start; gap: 2px; font: 900 1.5rem/1 var(--font-display); letter-spacing: -.04em; }
+.logo span { font-size: 1rem; }
+.nav-toggle { display: grid; gap: 5px; padding: var(--space-2) var(--space-3); background: none; border: 0; cursor: pointer; }
+.nav-toggle span { width: 22px; height: 2px; background: var(--ink); border-radius: 2px; transition: transform var(--t), opacity var(--t); }
+.nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.primary-nav { display: none; flex-direction: column; width: 100%; gap: var(--space-3); padding: var(--space-3) .4rem var(--space-2); }
+.primary-nav.is-open { display: flex; }
+.nav-links { display: flex; flex-direction: column; }
+.nav-links a { display: block; padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); font-weight: 600; transition: background-color var(--t); }
+.nav-links a:hover { background: var(--cream); }
+.nav-actions { display: flex; gap: var(--space-2); }
+
+/* ===== Bands, split layout, copy ===== */
+.band { padding-block: var(--space-6); overflow: clip; }
+.band-blue { background: var(--blue); color: var(--white); }
+.band-burgundy { background: var(--burgundy); color: var(--white); }
+.band-mist { background: var(--mist); }
+.band-cream, .trusted { background: var(--cream); }
+.band-wine { background: var(--wine); color: var(--white); }
+.split { display: grid; gap: var(--space-5); align-items: center; }
+.copy { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+.copy h2 { font-size: var(--fs-2xl); }
+.band-blue h2 { color: var(--lime); }
+.lead { font-size: var(--fs-lg); max-width: 36rem; }
+.center-head { max-width: 24ch; margin: 0 auto var(--space-5); text-align: center; font-size: var(--fs-2xl); }
+.center-cta { margin-top: var(--space-5); text-align: center; }
+
+/* ===== Hero ===== */
+.hero { background: var(--lime); color: var(--green); padding-top: 7.5rem; }
+.hero h1 { font-size: var(--fs-3xl); }
+.claim-form { display: flex; flex-direction: column; gap: var(--space-3); width: 100%; max-width: 34rem; }
+.claim-field { display: flex; align-items: center; gap: var(--space-1); padding: .9rem 1rem; background: var(--white); color: var(--muted); border-radius: var(--space-3); }
+.claim-field:focus-within { outline: 3px solid var(--green); }
+.claim-field input { flex: 1; min-width: 0; border: 0; font: inherit; color: var(--ink); background: transparent; outline: 0; }
+.form-status { min-height: 1.5em; font-size: var(--fs-sm); font-weight: 600; }
+.hero-visual { display: flex; justify-content: center; }
+
+/* Vertical infinite carousel: the list is duplicated by JS and slides up by exactly half its height */
+.vcarousel { width: min(100%, 320px); height: 440px; overflow: hidden; border-radius: var(--radius);
+  -webkit-mask-image: linear-gradient(transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(transparent, #000 6%, #000 94%, transparent); }
+.vtrack { animation: scroll-up 36s linear infinite; will-change: transform; }
+.vcarousel:hover .vtrack, .vcarousel:focus-within .vtrack { animation-play-state: paused; }
+@keyframes scroll-up { to { transform: translateY(-50%); } }
+.vcard { padding-bottom: var(--space-3); } /* padding (not gap) keeps the -50% loop point exact */
+.vcard .figure { height: var(--h); margin: 0; display: flex; align-items: flex-end; border-radius: var(--radius); overflow: hidden; background: var(--bg); transition: transform var(--t), box-shadow var(--t); }
+.vcard .figure:hover { transform: scale(1.03); box-shadow: var(--shadow); }
+.vcard figcaption { position: relative; z-index: 1; width: 100%; padding: var(--space-4) var(--space-3) var(--space-3); color: var(--white); font: .8rem/1.3 var(--font-mono); background: linear-gradient(transparent, rgba(0, 0, 0, .6)); }
+
+/* CSS-only person silhouette used as a placeholder portrait */
+.figure { position: relative; }
+.figure::before, .figure::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); }
+.figure::before { top: 20%; width: 34%; aspect-ratio: 1; border-radius: 50%; background: var(--skin); }
+.figure::after { bottom: 0; width: 74%; height: 42%; border-radius: 50% 50% 0 0; background: var(--cloth); }
+
+/* ===== Blue band: tilted phone ===== */
+.phone-scene { display: flex; justify-content: center; padding: var(--space-5) var(--space-6) var(--space-5) var(--space-5); }
+.tilt { position: relative; transform: perspective(900px) rotateY(16deg) rotateX(4deg) rotate(-5deg); animation: bob 6s ease-in-out infinite; }
+@keyframes bob { 50% { transform: perspective(900px) rotateY(16deg) rotateX(4deg) rotate(-5deg) translateY(-14px); } }
+.phone-red { position: relative; width: 210px; aspect-ratio: 9 / 16; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: var(--space-2); padding: var(--space-3); border-radius: 26px; background: linear-gradient(170deg, #d62d2d, #9c1016); box-shadow: var(--shadow); }
+.phone-red .figure { position: absolute; inset: 0 0 45%; }
+.phone-title { position: relative; font: 900 2rem/1 var(--font-display); color: #ffd1dc; letter-spacing: -.03em; margin-bottom: var(--space-2); }
+.pink-link { width: 100%; padding: .55rem; text-align: center; font-size: var(--fs-sm); font-weight: 700; color: var(--white); background: #f0587a; border-radius: var(--radius-pill); }
+.video-card { position: absolute; left: -64px; bottom: -44px; width: 140px; aspect-ratio: 4 / 3; display: grid; place-items: center; border-radius: 12px; background: linear-gradient(135deg, #f7a548, #d94f1a); box-shadow: var(--shadow); transform: rotate(-4deg); }
+.video-card small { position: absolute; left: 8px; bottom: 6px; color: var(--white); font-size: .65rem; }
+.play { width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, .85); position: relative; }
+.play::after { content: ""; position: absolute; left: 13px; top: 9px; border: 8px solid transparent; border-left: 12px solid var(--ink); }
+.bubbles { position: absolute; right: -48px; top: 52%; display: flex; flex-direction: column; gap: 10px; }
+.bubbles li { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #f59b2d; color: var(--white); font-size: .9rem; }
+
+/* ===== Burgundy band: scatter/stack collage ===== */
+.stage { position: relative; width: min(100%, 480px); aspect-ratio: 5 / 4; margin-inline: auto; }
+.cc { position: absolute; z-index: var(--z); left: var(--l1); top: var(--t1); width: var(--w1); height: var(--h1); background: var(--b1); border-radius: 14px; overflow: hidden;
+  transition: left 800ms cubic-bezier(.5, 0, .2, 1), top 800ms cubic-bezier(.5, 0, .2, 1), width 800ms cubic-bezier(.5, 0, .2, 1), height 800ms cubic-bezier(.5, 0, .2, 1), background-color 800ms ease; }
+.is-stacked .cc { left: var(--l2); top: var(--t2); width: 40%; height: 36%; background: var(--b2); }
+.cc-art { position: absolute; inset: 0; display: grid; place-items: center; color: var(--white); font-size: 1.1rem; transition: opacity 400ms ease; }
+.cc-art .figure { position: absolute; inset: 0; }
+.is-stacked .cc-art { opacity: 0; }
+.cc-ui { position: absolute; inset: 0; padding: 10%; opacity: 0; transition: opacity 500ms ease; }
+.is-stacked .cc-ui { opacity: 1; }
+.cc-ui i { display: block; width: 28%; aspect-ratio: 1; margin-bottom: 8%; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff, #bbb); border: 3px solid var(--lime); }
+.cc-ui b { display: block; height: 6px; width: 60%; margin-top: 6px; border-radius: 3px; background: rgba(255, 255, 255, .55); }
+.cc-ui b + b { width: 40%; }
+.cc-ui em { position: absolute; top: 10%; right: 10%; font-style: normal; font-size: 1.1rem; color: var(--white); }
+.handle-pill { padding: .4rem .85rem; background: var(--white); color: var(--ink); border-radius: var(--radius-pill); font-weight: 600; font-size: var(--fs-sm); white-space: nowrap; }
+.stage-pill { position: absolute; z-index: 9; left: 36%; top: 38%; transition: left 800ms cubic-bezier(.5, 0, .2, 1), top 800ms cubic-bezier(.5, 0, .2, 1); }
+.is-stacked .stage-pill { left: 2%; top: 80%; }
+
+/* ===== Mist band: stats ===== */
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+.stat { display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4); min-height: 170px; padding: var(--space-4); border-radius: var(--radius); background: var(--bg); color: var(--fg); transition: transform var(--t), box-shadow var(--t); }
+.stat:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.stat-wide { grid-column: span 2; }
+.stat p { display: flex; flex-direction: column; }
+.stat strong { font: 900 var(--fs-xl)/1.1 var(--font-display); }
+.stat span:not([class]), .stat small { font-size: var(--fs-sm); font-weight: 600; }
+.stat-icon { font-size: 1.8rem; line-height: 1; }
+.coin { display: grid; place-items: center; width: 40px; height: 40px; border: 3px solid currentColor; border-radius: 50%; font: 900 1.2rem/1 var(--font-display); }
+.stat-visits { flex-direction: row; align-items: center; }
+.globe { flex: none; width: 90px; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #8fd0ff, #2a6fd6 55%, #0b2d86); position: relative; }
+.globe::after { content: ""; position: absolute; left: 52%; top: 40%; width: 14px; height: 14px; border-radius: 50%; background: #ff2fd0; box-shadow: 0 0 0 4px rgba(255, 47, 208, .35); }
+
+/* ===== Trusted band: infinite horizontal carousel ===== */
+.rotator { display: inline-block; color: var(--blue); transition: opacity var(--t), transform var(--t); }
+.rotator.is-swapping { opacity: 0; transform: translateY(.3em); }
+.marquee-viewport { overflow: hidden; }
+.marquee-track { display: flex; align-items: center; gap: var(--space-3); width: max-content; padding-block: var(--space-3); will-change: transform; }
+.tile { position: relative; flex: none; background: var(--bg); border-radius: var(--radius); overflow: hidden; transition: transform var(--t), box-shadow var(--t); }
+.tile > a { position: relative; display: grid; place-items: center; width: 100%; height: 100%; }
+.tile-sq { width: 240px; height: 240px; }
+.tile-pill { width: 170px; height: 300px; border-radius: var(--radius-pill); }
+.tile-tall { width: 200px; height: 280px; border-radius: 32px; }
+.tile:hover, .tile:focus-within { transform: scale(1.04); box-shadow: var(--shadow); }
+.tile .figure { position: absolute; inset: 0; }
+.glyph { font: 900 2.6rem/1 var(--font-display); letter-spacing: -.04em; color: var(--fg); }
+.ring { width: 96px; height: 96px; border: 18px solid var(--fg); border-right-color: transparent; border-radius: 50%; }
+.tile-hover { position: absolute; inset: 0; display: grid; place-items: center; background: var(--hv); opacity: 0; transition: opacity var(--t); }
+.tile:hover .tile-hover, .tile:focus-within .tile-hover { opacity: 1; }
+.carousel-controls { display: flex; gap: var(--space-2); justify-content: center; margin-top: var(--space-3); }
+.icon-btn { width: 48px; height: 48px; border: 0; border-radius: 50%; background: var(--green); color: var(--lime); font-size: 1.6rem; line-height: 1; cursor: pointer; transition: background-color var(--t), transform var(--t); }
+.icon-btn:hover { background: var(--purple); transform: scale(1.08); }
+
+/* ===== Bento grid ===== */
+.bento { display: grid; gap: var(--space-3); }
+.bento-card { display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-5); min-height: 280px; padding: var(--space-4); border-radius: var(--radius); background: var(--bg); overflow: hidden; transition: transform var(--t), box-shadow var(--t); }
+.bento-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.bento-card h3 { max-width: 20ch; font: 800 var(--fs-xl)/1.2 var(--font-body); letter-spacing: -.01em; }
+.mini-row { display: flex; gap: var(--space-2); align-items: center; }
+.mini { display: grid; place-items: center; flex: 1; aspect-ratio: 1; border-radius: 12px; background: var(--bg); color: var(--white); font: italic 700 .8rem/1 var(--font-body); }
+.mini-dark { background: #1a1a1a; font-size: 1.6rem; flex: .8; aspect-ratio: auto; height: 80px; }
+.bar { width: 70%; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .8); }
+.products { display: flex; gap: var(--space-2); }
+.products li { display: grid; place-items: end start; flex: 1; aspect-ratio: 3 / 4; padding: var(--space-2); border-radius: 12px; background: var(--bg); color: var(--white); font-weight: 800; font-size: var(--fs-sm); transform: rotate(var(--r)); }
+.emilio { position: relative; min-height: 330px; }
+.phone-blue { display: flex; flex-direction: column; gap: var(--space-2); width: 150px; padding: var(--space-3); border-radius: 20px; background: linear-gradient(160deg, #3d5bff, #1a2fc4); transform: rotate(-6deg); }
+.phone-name { font: 300 1.7rem/1 var(--font-body); }
+.dots { display: flex; gap: 6px; } .dots i { width: 12px; height: 12px; border-radius: 3px; background: rgba(255, 255, 255, .6); }
+.tag { font-size: .7rem; opacity: .85; }
+.deck { display: grid; place-items: center; height: 90px; border-radius: 10px; background: linear-gradient(135deg, #6a3fd1, #1fb3c4); }
+.widget-mail { position: absolute; right: 0; top: 0; display: flex; flex-direction: column; padding: var(--space-3); border-radius: 16px; background: var(--lime); color: var(--ink); transform: rotate(5deg); }
+.widget-mail strong { font: 900 1.8rem/1 var(--font-display); } .widget-mail small { font-size: .7rem; }
+.form-card { position: absolute; right: 0; bottom: 0; display: flex; flex-direction: column; gap: var(--space-2); width: 55%; padding: var(--space-3); border-radius: 14px; background: var(--white); color: var(--ink); font-size: var(--fs-sm); transform: rotate(-3deg); box-shadow: var(--shadow); }
+.field { height: 14px; border-radius: 4px; background: #e6e6ea; } .field.short { width: 60%; }
+.save { padding: .4rem; text-align: center; border-radius: var(--radius-pill); background: var(--ink); color: var(--white); font-weight: 700; }
+
+/* ===== Tool section, testimonial ===== */
+.tool-grid { display: grid; gap: var(--space-3); }
+.tool-card { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); border-radius: var(--radius); background: var(--white); transition: transform var(--t), box-shadow var(--t); }
+.tool-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.tool-card h3 { font: 800 var(--fs-lg)/1.2 var(--font-body); }
+.icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: var(--bg); font-size: 1.5rem; }
+.oval { position: relative; width: min(100%, 520px); aspect-ratio: 2 / 1; margin: 0 auto var(--space-5); overflow: hidden; border-radius: var(--radius-pill);
+  background: linear-gradient(100deg, #2a5a1f 0 22%, #f06a0f 22% 46%, #2a5a1f 46% 54%, #f06a0f 54% 78%, #2a5a1f 78%); }
+.oval .figure { position: absolute; inset: 0; }
+.oval .figure::before { top: 10%; width: 22%; } .oval .figure::after { width: 50%; height: 46%; }
+.beanie { position: absolute; z-index: 1; left: 50%; top: 5%; width: 24%; height: 22%; transform: translateX(-50%); border-radius: 50% 50% 12% 12%; background: #222; }
+blockquote { margin: 0 auto; max-width: 22ch; text-align: center; font: 900 var(--fs-2xl)/1.1 var(--font-display); letter-spacing: -.02em; }
+.quote-band blockquote { max-width: 26ch; }
+
+/* ===== FAQ ===== */
+.faq { display: grid; gap: var(--space-2); max-width: 760px; margin-inline: auto; }
+.faq details { padding-inline: var(--space-4); border-radius: var(--radius); background: rgba(0, 0, 0, .25); transition: background-color var(--t); }
+.faq details:hover, .faq details[open] { background: rgba(0, 0, 0, .38); }
+.faq summary { display: flex; justify-content: space-between; gap: var(--space-3); padding-block: var(--space-4); font-weight: 700; cursor: pointer; list-style: none; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: ""; flex: none; width: .6rem; height: .6rem; margin-top: .4rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform var(--t); }
+.faq details[open] summary::after { transform: rotate(-135deg); }
+.faq details p { padding-bottom: var(--space-4); opacity: .9; animation: fade-in 300ms ease; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(-6px); } }
+
+/* ===== Footer ===== */
+.site-footer { padding-block: var(--space-5) var(--space-4); background: var(--purple-deep); color: var(--white); }
+.footer-card { padding: var(--space-5) var(--space-4); border-radius: var(--radius); background: var(--white); color: var(--ink); }
+.footer-cols { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+.footer-cols h2 { margin-bottom: var(--space-2); font: 700 var(--fs-md)/1.2 var(--font-body); letter-spacing: 0; }
+.footer-cols li { padding-block: var(--space-1); }
+.footer-cols a, .lang a { color: var(--muted); transition: color var(--t); }
+.footer-cols a:hover, .lang a:hover { color: var(--purple); }
+.lang { display: flex; gap: var(--space-3); margin-top: var(--space-5); font-size: var(--fs-sm); }
+.footer-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-4); }
+.badge { display: flex; flex-direction: column; padding: .4rem 1rem; border-radius: 10px; background: #111; color: var(--white); line-height: 1.2; transition: background-color var(--t), transform var(--t); }
+.badge:hover { background: #333; transform: scale(1.04); }
+.badge small { font-size: .65rem; } .badge strong { font-size: var(--fs-sm); }
+.social { display: flex; gap: var(--space-2); }
+.social a { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #111; color: var(--white); transition: background-color var(--t), transform var(--t); }
+.social a:hover { background: var(--purple); transform: scale(1.08); }
+.fine-print { margin-top: var(--space-5); font-size: var(--fs-sm); text-align: center; opacity: .85; }
+
+/* ===== Scroll reveal (only hides content when JS is running) ===== */
+.js [data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity 500ms ease, transform 500ms ease; }
+.js [data-reveal].is-visible { opacity: 1; transform: none; }
+
+/* ===== Tablet ===== */
+@media (min-width: 640px) {
+  .container { padding-inline: var(--space-4); }
+  .claim-form { flex-direction: row; flex-wrap: wrap; }
+  .claim-field { flex: 1; }
+  .form-status { flex-basis: 100%; }
+  .stats { grid-template-columns: repeat(5, 1fr); }
+  .stat-wide { grid-column: span 3; } .stat-narrow { grid-column: span 2; }
+  .vcarousel { height: 480px; }
+}
+@media (min-width: 768px) {
+  .bento { grid-template-columns: 1fr 1fr; }
+  .bento-tall { grid-row: span 2; }
+  .tool-grid { grid-template-columns: repeat(3, 1fr); }
+  .footer-cols { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ===== Desktop ===== */
+@media (min-width: 1024px) {
+  .band { padding-block: var(--space-7); }
+  .hero { padding-top: 9rem; }
+  .nav-pill { border-radius: var(--radius-pill); padding-left: 1.5rem; }
+  .nav-toggle { display: none; }
+  .primary-nav { display: flex; flex: 1; flex-direction: row; align-items: center; justify-content: space-between; width: auto; padding: 0 0 0 var(--space-5); }
+  .nav-links { flex-direction: row; }
+  .split { grid-template-columns: 1fr 1fr; gap: var(--space-6); }
+  .split-visual-first .visual { order: -1; }
+  .vcarousel { width: 340px; height: 560px; }
+}
+
+/* ===== Reduced motion: no looping, no reveals, near-instant transitions ===== */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .vtrack, .tilt { animation: none; }
+  .js [data-reveal] { opacity: 1; transform: none; transition: none; }
+  *, *::before, *::after { transition-duration: 1ms !important; }
+}
+</style>
+<!-- Marks JS as available so reveal animations only hide content when they can also show it -->
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <div class="nav-pill">
+      <a class="logo" href="#top" aria-label="Winktree clone home">Winktree<span aria-hidden="true">&#10033;</span></a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu"><span></span><span></span><span></span></button>
+      <nav id="primary-nav" class="primary-nav" aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="#create">Solutions</a></li><li><a href="#features">Features</a></li><li><a href="#share">Integrations</a></li><li><a href="#faq">Resources</a></li><li><a href="#tool">Pricing</a></li>
+        </ul>
+        <div class="nav-actions"><a class="btn btn-quiet" href="https://linktr.ee/login" target="_blank" rel="noopener noreferrer">Log in</a><a class="btn btn-dark" href="#get-started">Sign up free</a></div>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <!-- HERO: lime band with a vertical infinite carousel -->
+  <section class="band hero" id="top" aria-labelledby="hero-title">
+    <div class="container split">
+      <div class="copy">
+        <h1 id="hero-title">A link in bio built for you.</h1>
+        <p class="lead">Join 70M+ people using Winktree for their link in bio. One link to help you share everything you create, curate and sell from your Instagram, TikTok, Twitter, YouTube and other social media profiles.</p>
+        <form class="claim-form" id="get-started" novalidate>
+          <label class="sr-only" for="handle">Choose your handle</label>
+          <div class="claim-field"><span aria-hidden="true">linktr.ee/</span><input id="handle" name="handle" type="text" placeholder="yourname" autocomplete="off" required></div>
+          <button class="btn btn-green btn-lg" type="submit">Get started for free</button>
+          <p class="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+      <div class="visual hero-visual">
+        <div class="vcarousel" role="group" aria-label="Featured creators"><ul class="vtrack">
+<li class="vcard"><figure class="figure" style="--bg:#8129d9;--skin:#f3c9a5;--cloth:#e9c0e9;--h:300px"><figcaption>Mira Das. Illustrator and shop owner.</figcaption></figure></li>
+<li class="vcard"><figure class="figure" style="--bg:#e0561b;--skin:#d9a07a;--cloth:#1a1a1a;--h:260px"><figcaption>Rohan Mehta. Podcaster and host.</figcaption></figure></li>
+<li class="vcard"><figure class="figure" style="--bg:#1f6fd1;--skin:#e8b894;--cloth:#d2e823;--h:320px"><figcaption>Sana Iqbal. Chef and cookbook author.</figcaption></figure></li>
+<li class="vcard"><figure class="figure" style="--bg:#c2185b;--skin:#c68b64;--cloth:#254f1a;--h:280px"><figcaption>Kabir Nair. Student developer.</figcaption></figure></li>
+<li class="vcard"><figure class="figure" style="--bg:#00796b;--skin:#f1c7a0;--cloth:#ffc2d9;--h:300px"><figcaption>Ananya Rao. Dance coach.</figcaption></figure></li>
+<li class="vcard"><figure class="figure" style="--bg:#254f1a;--skin:#b97d58;--cloth:#d2e823;--h:270px"><figcaption>Vikram Joshi. Musician and producer.</figcaption></figure></li>
+        </ul></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CREATE: blue band with a tilted phone -->
+  <section class="band band-blue" id="create" aria-labelledby="create-title">
+    <div class="container split split-visual-first">
+      <div class="copy" data-reveal>
+        <h2 id="create-title">Create and customize your Winktree in minutes</h2>
+        <p class="lead">Connect all your content across social media, websites, stores and more in one link in bio. Customize every detail or let Winktree automatically enhance it to match your brand and drive more clicks.</p>
+        <a class="btn btn-lime btn-lg" href="#get-started">Get started for free</a>
+      </div>
+      <div class="visual phone-scene" aria-hidden="true">
+        <div class="tilt">
+          <div class="phone-red">
+            <span class="figure" style="--skin:#f3c9a5;--cloth:#7a1018"></span>
+            <p class="phone-title">CHERRY</p>
+            <span class="pink-link">Full tracklist</span><span class="pink-link">Sweet report</span>
+          </div>
+          <div class="video-card"><span class="play"></span><small>June on film</small></div>
+          <ul class="bubbles"><li>&#9835;</li><li>&#9654;</li><li>&#9733;</li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHARE: burgundy band; tiles scatter, then fan into a stack, on a loop -->
+  <section class="band band-burgundy" id="share" aria-labelledby="share-title">
+    <div class="container split">
+      <div class="copy" data-reveal>
+        <h2 id="share-title">Share your Winktree anywhere you like!</h2>
+        <p class="lead">Add your unique Winktree URL to all the platforms and places you find your audience. Then use your QR code to drive your offline traffic back to your link in bio.</p>
+        <a class="btn btn-pink btn-lg" href="#get-started">Get started for free</a>
+      </div>
+      <div class="visual" aria-hidden="true">
+        <div class="stage" data-collage>
+<div class="cc" style="--l1:2%;--t1:10%;--w1:24%;--h1:32%;--b1:#e8c34a;--l2:14%;--t2:52%;--b2:#2665d6;--z:6"><span class="cc-art"><b>$20</b></span><span class="cc-ui"><i></i><b></b><b></b><em>f</em></span></div>
+<div class="cc" style="--l1:30%;--t1:0%;--w1:34%;--h1:26%;--b1:#aeb7bb;--l2:21%;--t2:43%;--b2:#e0252a;--z:5"><span class="cc-art"><span class="figure" style="--skin:#e8c9b0;--cloth:#5a6670"></span></span><span class="cc-ui"><i></i><b></b><b></b><em>&#9654;</em></span></div>
+<div class="cc" style="--l1:62%;--t1:20%;--w1:36%;--h1:26%;--b1:#5b4636;--l2:28%;--t2:34%;--b2:#6f7475;--z:4"><span class="cc-art"><span class="figure" style="--skin:#d9a07a;--cloth:#222"></span></span><span class="cc-ui"><i></i><b></b><b></b><em>&#9638;</em></span></div>
+<div class="cc" style="--l1:0%;--t1:50%;--w1:26%;--h1:36%;--b1:#d9cdb9;--l2:35%;--t2:25%;--b2:#ff1f7d;--z:3"><span class="cc-art"><span class="figure" style="--skin:#e8b894;--cloth:#f4efe6"></span></span><span class="cc-ui"><i></i><b></b><b></b><em>&#9834;</em></span></div>
+<div class="cc" style="--l1:33%;--t1:54%;--w1:26%;--h1:42%;--b1:#d610c9;--l2:42%;--t2:16%;--b2:#c015b8;--z:2"><span class="cc-art"><b>@</b></span><span class="cc-ui"><i></i><b></b><b></b><em>&#9678;</em></span></div>
+<div class="cc" style="--l1:64%;--t1:56%;--w1:28%;--h1:30%;--b1:#7d8450;--l2:49%;--t2:7%;--b2:#d9c3cf;--z:1"><span class="cc-art"><b>&#9654;</b></span><span class="cc-ui"><i></i><b></b><b></b><em>&#9636;</em></span></div>
+          <span class="handle-pill stage-pill">&#10033; /averyclothing</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANALYZE: pale green band with stat tiles that count up -->
+  <section class="band band-mist" id="analyze" aria-labelledby="analyze-title">
+    <div class="container split split-visual-first">
+      <div class="copy" data-reveal>
+        <h2 id="analyze-title">Analyze your audience and keep them engaged</h2>
+        <p class="lead">Track your engagement over time, monitor revenue and learn what's converting your audience. Make informed updates on the fly to keep them coming back.</p>
+        
+      </div>
+      <div class="visual stats" data-reveal>
+        <article class="stat stat-wide" style="--bg:#7b7d32;--fg:#d2e823">
+          <svg viewBox="0 0 120 40" width="120" height="40" aria-hidden="true"><polyline points="0,28 10,12 18,30 28,8 38,32 50,14 62,26 74,6 88,30 100,16 120,24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>
+          <p><strong data-count="43500">43,500</strong><span>Clicks</span></p>
+        </article>
+        <article class="stat stat-narrow" style="--bg:#e3b5ec;--fg:#3b0d4a"><span class="stat-icon" aria-hidden="true">&#127911;</span><p><strong data-count="643">643</strong><span>Track plays</span></p></article>
+        <article class="stat stat-narrow" style="--bg:#d610c9;--fg:#fff"><span class="stat-icon coin" aria-hidden="true">$</span><p><strong data-count="2362" data-prefix="$">$2,362</strong><span>Sales</span></p></article>
+        <article class="stat stat-wide stat-visits" style="--bg:#0a1ea8;--fg:#fff"><span class="globe" aria-hidden="true"></span><p><small>New York, USA</small><strong data-count="960">960</strong><span>Visits</span></p></article>
+        <a class="btn btn-pink btn-lg" href="#get-started">Get started for free</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUSTED: infinite horizontal carousel with a rotating word -->
+  <section class="band trusted" id="creators" aria-labelledby="creators-title">
+    <div class="container"><h2 class="center-head" id="creators-title" data-reveal>The only link in bio trusted by 70M+ <span class="rotator" data-rotator>merch sellers</span></h2></div>
+    <div class="marquee" data-marquee role="group" aria-roledescription="carousel" aria-label="Creators and brands using the page">
+      <div class="marquee-viewport"><ul class="marquee-track">
+<li class="tile tile-pill" style="--bg:#c9b6f2;--hv:#8129d9"><a href="#get-started" aria-label="View /mira.sketch page"><span class="figure" style="--skin:#f3c9a5;--cloth:#8129d9"></span><span class="tile-hover"><span class="handle-pill">&#10033; /mira.sketch</span></span></a></li>
+<li class="tile tile-sq" style="--bg:#111;--hv:#d2e823"><a href="#get-started" aria-label="View /nova.studio page"><span class="glyph" style="--fg:#fff">NOVA</span><span class="tile-hover"><span class="handle-pill">&#10033; /nova.studio</span></span></a></li>
+<li class="tile tile-tall" style="--bg:#ffb3c1;--hv:#c2185b"><a href="#get-started" aria-label="View /rohan.talks page"><span class="figure" style="--skin:#d9a07a;--cloth:#1a1a1a"></span><span class="tile-hover"><span class="handle-pill">&#10033; /rohan.talks</span></span></a></li>
+<li class="tile tile-sq" style="--bg:#111;--hv:#7a0019"><a href="#get-started" aria-label="View /ring.records page"><span class="glyph ring" style="--fg:#f5c518"></span><span class="tile-hover"><span class="handle-pill">&#10033; /ring.records</span></span></a></li>
+<li class="tile tile-pill" style="--bg:#8fd3c8;--hv:#254f1a"><a href="#get-started" aria-label="View /sana.eats page"><span class="figure" style="--skin:#e8b894;--cloth:#d2e823"></span><span class="tile-hover"><span class="handle-pill">&#10033; /sana.eats</span></span></a></li>
+<li class="tile tile-sq" style="--bg:#d2e823;--hv:#2665d6"><a href="#get-started" aria-label="View /kabir.codes page"><span class="glyph" style="--fg:#254f1a">K/</span><span class="tile-hover"><span class="handle-pill">&#10033; /kabir.codes</span></span></a></li>
+<li class="tile tile-tall" style="--bg:#f4a261;--hv:#254f1a"><a href="#get-started" aria-label="View /ananya.moves page"><span class="figure" style="--skin:#f1c7a0;--cloth:#c2185b"></span><span class="tile-hover"><span class="handle-pill">&#10033; /ananya.moves</span></span></a></li>
+<li class="tile tile-sq" style="--bg:#2665d6;--hv:#e9c0e9"><a href="#get-started" aria-label="View /beatbox.fm page"><span class="glyph" style="--fg:#d2e823">BEAT</span><span class="tile-hover"><span class="handle-pill">&#10033; /beatbox.fm</span></span></a></li>
+      </ul></div>
+      <div class="carousel-controls">
+        <button class="icon-btn" type="button" data-dir="-1" aria-label="Scroll back">&#8249;</button>
+        <button class="icon-btn" type="button" data-dir="1" aria-label="Scroll forward">&#8250;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES: bento grid -->
+  <section class="band band-cream" id="features" aria-labelledby="features-title">
+    <div class="container">
+      <h2 class="sr-only" id="features-title">What you can do with your page</h2>
+      <div class="bento">
+        <article class="bento-card" style="--bg:var(--pink)" data-reveal>
+          <div class="mini-row" aria-hidden="true">
+            <span class="mini" style="--bg:linear-gradient(135deg,#ff9fc4,#ffd1e3)"><em>Bubble Gum</em></span>
+            <span class="mini mini-dark">@</span>
+            <span class="mini" style="--bg:linear-gradient(135deg,#6a3fd1,#f08a3c)"><i class="bar"></i></span>
+          </div>
+          <h3>Share every type of content in limitless ways</h3>
+        </article>
+        <article class="bento-card" style="--bg:var(--lime)" data-reveal>
+          <ul class="products" aria-hidden="true">
+            <li style="--bg:#e0252a;--r:-8deg">$10</li><li style="--bg:#f4a261;--r:-3deg">$20</li><li style="--bg:#c2185b;--r:3deg">$40</li><li style="--bg:#1fb3c4;--r:8deg">$30</li>
+          </ul>
+          <h3>Sell products, collect payments and make monetization simple</h3>
+        </article>
+        <article class="bento-card bento-tall" style="--bg:var(--navy);color:var(--white)" data-reveal>
+          <div class="emilio" aria-hidden="true">
+            <div class="phone-blue"><p class="phone-name">emilio</p><span class="dots"><i></i><i></i><i></i></span><span class="tag">fresh beats</span><span class="deck"><span class="play"></span></span></div>
+            <div class="widget-mail"><span>&#9993;</span><strong>23</strong><small>Emails received</small></div>
+            <div class="form-card"><b>Add a question</b><span class="field"></span><span class="field short"></span><span class="save">Save</span></div>
+          </div>
+          <h3>Grow, own and engage your audience across all of your channels</h3>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOOL: heading plus three short cards -->
+  <section class="band band-cream tool" id="tool" aria-labelledby="tool-title">
+    <div class="container">
+      <h2 class="center-head" id="tool-title" data-reveal>The fast, friendly and powerful link in bio tool.</h2>
+      <ul class="tool-grid">
+        <li class="tool-card" data-reveal><span class="icon" style="--bg:var(--lime)" aria-hidden="true">&#9889;</span><h3>Set up in minutes</h3><p>Claim your handle, add your links and go live the same day.</p></li>
+        <li class="tool-card" data-reveal><span class="icon" style="--bg:var(--pink)" aria-hidden="true">&#128268;</span><h3>Works with your apps</h3><p>Connect the platforms you already use for music, video and shopping.</p></li>
+        <li class="tool-card" data-reveal><span class="icon" style="--bg:#bcd4ff" aria-hidden="true">&#128202;</span><h3>Know what works</h3><p>Clicks and visits show which links your audience loves most.</p></li>
+      </ul>
+      <p class="center-cta"><a class="btn btn-dark btn-lg" href="#get-started">Get started for free</a></p>
+    </div>
+  </section>
+
+  <!-- TESTIMONIAL -->
+  <section class="band band-cream quote-band" aria-labelledby="quote-title">
+    <div class="container" data-reveal>
+      <h2 class="sr-only" id="quote-title">What creators say</h2>
+      <div class="oval" aria-hidden="true"><span class="figure" style="--skin:#f0c4a0;--cloth:#8a8f95"><i class="beanie"></i></span></div>
+      <blockquote><p>&ldquo;Winktree simplifies the process for creators to share multiple parts of themselves in one inclusive link.&rdquo;</p></blockquote>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="band band-wine" id="faq" aria-labelledby="faq-title">
+    <div class="container">
+      <h2 class="center-head" id="faq-title" data-reveal>Questions? Answered</h2>
+      <div class="faq" data-reveal>
+<details><summary>What is a link in bio?</summary><p>It is one link in your social profile that opens a page with all your other links, so followers can find everything you share in one place.</p></details>
+<details><summary>What makes Winktree better than the other link in bio options?</summary><p>Setup takes minutes, the page is easy to customize, and built-in analytics show which links your audience actually opens.</p></details>
+<details><summary>How can I drive more traffic to and through my Winktree?</summary><p>Put your link in every bio, add it to posts and videos, share it as a QR code offline, and keep your top link fresh.</p></details>
+<details><summary>How many links should I have on my Winktree?</summary><p>Start with the few that matter most. Fewer, clearer links usually get more clicks than a long list.</p></details>
+<details><summary>Do I need a website to use Winktree?</summary><p>No. Your page can be your home on the web, and it can point to any site, store or profile you already have.</p></details>
+<details><summary>Where can I download the app?</summary><p>Use the App Store and Google Play badges in the footer of this page.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-card">
+      <div class="footer-cols">
+<nav aria-label="Company"><h2>Company</h2><ul><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">Newsroom</a></li><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">Careers</a></li><li><a href="#top">Link in bio</a></li><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">Social good</a></li><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">Contact</a></li></ul></nav>
+<nav aria-label="Community"><h2>Community</h2><ul><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">Winktree For Enterprise</a></li><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">2023 Creator Report</a></li><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">2022 Creator Report</a></li><li><a href="#creators">Charities</a></li><li><a href="#features">Creator Profile Directory</a></li><li><a href="#share">Explore Templates</a></li></ul></nav>
+<nav aria-label="Support"><h2>Support</h2><ul><li><a href="#faq">Help topics</a></li><li><a href="#get-started">Getting started</a></li><li><a href="#faq">Winktree Pro</a></li><li><a href="#features">Features and How-Tos</a></li><li><a href="#faq">FAQs</a></li><li><a href="#faq">Report A Violation</a></li></ul></nav>
+<nav aria-label="Trust and legal"><h2>Trust and legal</h2><ul><li><a href="https://linktr.ee/s/terms" target="_blank" rel="noopener noreferrer">Terms & Conditions</a></li><li><a href="https://linktr.ee/s/privacy" target="_blank" rel="noopener noreferrer">Privacy Notice</a></li><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">Cookie Notice</a></li><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">Trust Center</a></li><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">Cookies Preferences</a></li><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">Transparency Report</a></li><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">Law Enforcement Access Policy</a></li><li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer">Human Rights</a></li></ul></nav>
+      </div>
+      <p class="lang"><a href="#top" lang="en" aria-current="true">English</a><a href="#top" lang="pt-BR">Portugu&ecirc;s (Brasil)</a></p>
+      <div class="footer-bar">
+        <a class="btn btn-gray" href="https://linktr.ee/login" target="_blank" rel="noopener noreferrer">Log in</a>
+        <a class="btn btn-lime" href="#get-started">Get started for free</a>
+        <a class="badge" href="https://apps.apple.com/" target="_blank" rel="noopener noreferrer"><small>Download on the</small><strong>App Store</strong></a>
+        <a class="badge" href="https://play.google.com/store" target="_blank" rel="noopener noreferrer"><small>Get it on</small><strong>Google Play</strong></a>
+        <ul class="social" aria-label="Social links">
+          <li><a href="https://linktr.ee/" target="_blank" rel="noopener noreferrer" aria-label="Winktree">&#10033;</a></li><li><a href="https://www.threads.net/@Winktree" target="_blank" rel="noopener noreferrer" aria-label="Threads">@</a></li><li><a href="https://www.tiktok.com/@Winktree" target="_blank" rel="noopener noreferrer" aria-label="TikTok">&#9834;</a></li><li><a href="https://www.instagram.com/Winktree/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">&#9678;</a></li><li><a href="https://discord.com/" target="_blank" rel="noopener noreferrer" aria-label="Discord">&#9786;</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="fine-print">&copy; We acknowledge the Traditional Custodians of the land on which our office stands, The Wurundjeri people of the Kulin Nation, and pay our respects to Elders past, present and emerging. Winktree Pty Ltd (ABN 68 608 721 562), 1-9 Sackville St, Collingwood VIC 3066. </p>
+  </div>
+</footer>
+<script>
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const makeClone = (el) => {
+  const c = el.cloneNode(true);
+  c.setAttribute('aria-hidden', 'true');
+  c.inert = true; // copies must not be reachable by keyboard or screen readers
+  return c;
+};
+
+/* ===== Mobile nav toggle ===== */
+const toggle = document.querySelector('.nav-toggle');
+const nav = document.getElementById('primary-nav');
+function setMenu(open) {
+  nav.classList.toggle('is-open', open);
+  toggle.setAttribute('aria-expanded', String(open));
+  toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+}
+toggle.addEventListener('click', () => setMenu(toggle.getAttribute('aria-expanded') !== 'true'));
+nav.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+/* ===== Hero form (demo only: no backend) ===== */
+const form = document.querySelector('.claim-form');
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const handle = form.elements.handle.value.trim().replace(/[^\w.-]/g, '');
+  form.querySelector('.form-status').textContent = handle
+    ? `Nice! linktr.ee/${handle} would be yours. (This is a demo form.)`
+    : 'Enter a handle to claim your page.';
+});
+
+/* ===== Scroll reveal ===== */
+const revealEls = document.querySelectorAll('[data-reveal]');
+if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('is-visible'); io.unobserve(en.target); } });
+  }, { threshold: 0.15 });
+  revealEls.forEach((el) => io.observe(el));
+} else {
+  revealEls.forEach((el) => el.classList.add('is-visible'));
+}
+
+/* ===== Hero: vertical infinite carousel =====
+   Cards are duplicated once. CSS slides the list up by exactly half its height,
+   which lands on an identical picture, so the loop restarts invisibly. */
+(function () {
+  const track = document.querySelector('.vtrack');
+  if (track) track.append(...[...track.children].map(makeClone));
+})();
+
+/* ===== Burgundy band: tiles scatter, then fan into a stack, repeatedly ===== */
+(function () {
+  const stage = document.querySelector('[data-collage]');
+  if (!stage || reduceMotion.matches) return;
+  setInterval(() => stage.classList.toggle('is-stacked'), 3800);
+})();
+
+/* ===== Stats count up when they scroll into view ===== */
+(function () {
+  const nums = document.querySelectorAll('[data-count]');
+  if (!nums.length || reduceMotion.matches || !('IntersectionObserver' in window)) return;
+  const fmt = (el, v) => { el.textContent = (el.dataset.prefix || '') + Math.round(v).toLocaleString('en-US'); };
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      io.unobserve(en.target);
+      const el = en.target, end = Number(el.dataset.count), start = performance.now();
+      (function tick(now) {
+        const p = Math.min((now - start) / 1200, 1);
+        fmt(el, end * (1 - Math.pow(1 - p, 3))); // ease-out
+        if (p < 1) requestAnimationFrame(tick);
+      })(start);
+    });
+  }, { threshold: 0.6 });
+  nums.forEach((el) => io.observe(el));
+})();
+
+/* ===== Rotating headline word ===== */
+(function () {
+  const el = document.querySelector('[data-rotator]');
+  if (!el) return;
+  const words = ['merch sellers', 'writers', 'indie artists', 'producers', 'podcasters', 'chefs'];
+  let i = 0;
+  setInterval(() => {
+    i = (i + 1) % words.length;
+    if (reduceMotion.matches) { el.textContent = words[i]; return; }
+    el.classList.add('is-swapping'); // fade out, swap the word, fade in
+    setTimeout(() => { el.textContent = words[i]; el.classList.remove('is-swapping'); }, 220);
+  }, 2600);
+})();
+
+/* ===== Horizontal infinite carousel =====
+   The tiles are repeated three times. One number, "offset", decides the position; the track
+   is shifted left by (offset mod width-of-one-set). Every set looks the same, so the wrap-around
+   is invisible in both directions. Drift, the buttons and the loop all just change "offset". */
+(function () {
+  const root = document.querySelector('[data-marquee]');
+  if (!root) return;
+  const track = root.querySelector('.marquee-track');
+  const originals = [...track.children];
+  track.append(...originals.map(makeClone), ...originals.map(makeClone));
+
+  const SPEED = 45, NUDGE = 260, DURATION = 600; // px/s drift, px per button press, ms
+  let setWidth = 0, offset = 0, paused = false, last = null, anim = null;
+
+  const measure = () => { setWidth = track.children[originals.length].offsetLeft - track.children[0].offsetLeft; };
+  const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+  function render() {
+    if (!setWidth) return;
+    const o = ((offset % setWidth) + setWidth) % setWidth; // true modulo, safe for negatives
+    track.style.transform = `translate3d(${-o}px, 0, 0)`;
+  }
+  function frame(now) {
+    const dt = last === null ? 0 : Math.min((now - last) / 1000, 0.1);
+    last = now;
+    if (anim) { // a button press is easing the strip
+      const p = Math.min((now - anim.start) / anim.dur, 1);
+      offset = anim.from + (anim.to - anim.from) * ease(p);
+      if (p === 1) anim = null;
+    } else if (!paused && !reduceMotion.matches && !document.hidden) {
+      offset += SPEED * dt; // gentle continuous drift
+    }
+    render();
+    requestAnimationFrame(frame);
+  }
+  function nudge(dir) {
+    anim = { from: offset, to: (anim ? anim.to : offset) + dir * NUDGE, start: performance.now(), dur: reduceMotion.matches ? 1 : DURATION };
+  }
+  root.querySelectorAll('[data-dir]').forEach((b) => b.addEventListener('click', () => nudge(Number(b.dataset.dir))));
+  // Pause while the pointer is over the carousel or keyboard focus is inside it
+  root.addEventListener('mouseenter', () => { paused = true; });
+  root.addEventListener('mouseleave', () => { paused = false; });
+  root.addEventListener('focusin', () => { paused = true; });
+  root.addEventListener('focusout', () => { paused = false; });
+  window.addEventListener('resize', measure);
+  measure();
+  requestAnimationFrame(frame);
+})();
+
+/* ===== FAQ: keep one answer open at a time ===== */
+(function () {
+  const items = [...document.querySelectorAll('.faq details')];
+  items.forEach((d) => d.addEventListener('toggle', () => {
+    if (d.open) items.forEach((o) => { if (o !== d) o.open = false; });
+  }));
+})();
+</script>
+</body>
+</html>
